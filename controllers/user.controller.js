@@ -40,7 +40,6 @@ const signup = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error)
         return res.status(500).json({
             success,
             error:error.message
@@ -52,7 +51,6 @@ const signup = async (req, res) => {
 const signin = async (req, res) => {
     const {email, password} = req.body;
     let success = false;
-    console.log(email, password)
     try {
 
         if (!email || !password)
