@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const Product = require('../models/product');
 const {User, Role} = require('../models/user');
 
@@ -108,4 +107,21 @@ const getProducts = async (req, res) => {
     }
 }
 
-module.exports = { listProduct, getProducts };
+const getProductById = async(req, res) => {
+    const {id} = req.params;
+
+    try {
+        const product = await Product.findById(id);
+        return res.status(201).json({
+            success : true,
+            data : product
+        })
+    } catch (error) {
+        res.status(500).json({
+            success : false,
+            error : error.message
+        })
+    }
+}
+
+module.exports = { listProduct, getProducts, getProductById };
