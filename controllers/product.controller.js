@@ -65,9 +65,14 @@ const listProduct = async (req, res) => {
 const getProducts = async (req, res) => {
     let success = false;
     const { name, price, rating, category } = req.query;
+    // category : this field is useful when yoy search by the tag name
 
     try {
-        let query;
+        // firstly we are finding on the basses of category
+        // secondly by searching
+        // and lastly by just getting all product
+        
+        let query;        
         if (category) {
             const _category = category.split(" ");
             query = Product.find({ category: { $in: _category } });
@@ -76,6 +81,12 @@ const getProducts = async (req, res) => {
         } else {
             query = Product.find();
         }
+
+        //  price : we will pass price as a query in url and value should be either 1 or -1.
+        //        1 for sort in low to high order
+        //       -1 for sort in hight to low
+
+        //  rating : we will pass rating as a query element in url and it will only contain -1. To sort in higher to lower order 
 
         if (price || rating) {
             if (price && rating) {
