@@ -8,6 +8,7 @@ const productRouter = require('./routes/product.route');
 const orderRouter = require('./routes/order.route')
 const productJson = require('./data/product.data.json');
 const Product = require('./models/product');
+const adminRouter = require('./routes/admin.route')
 const cartRouter = require('./routes/cart.route');
 
 app.use(express.json());
@@ -17,6 +18,7 @@ app.use('/user', userRouter);
 app.use('/product', productRouter);
 app.use('/cart', cartRouter);
 app.use('/order', orderRouter);
+app.use('/admin', adminRouter)
 
 //if you want to insert multiple product just comment it out and update product.data.json file.
 
