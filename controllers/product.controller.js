@@ -1,41 +1,41 @@
 const Product = require('../models/product');
-const {User, Role} = require('../models/user');
+const { User, Role } = require('../models/user');
 
 // this route should be protected only admin or a seller can list the product. 
 const listProduct = async (req, res) => {
-    const {title, description, img, price, stock, brand, category,status, rating, seller } = req.body;
+    const { title, description, img, price, stock, brand, category, status, rating, seller } = req.body;
 
     try {
         let valid = title || description || img || price || stock || brand || category || status || rating || seller;
 
-        if(!valid){
+        if (!valid) {
             return res.status(401).json({
-                success : false,
-                message : "all fields required"
+                success: false,
+                message: "all fields required"
             })
         }
 
-        const _seller = await User.findById({_id : seller});
+        const _seller = await User.findById({ _id: seller });
 
-        if(_seller.role == Role.USER){
+        if (_seller.role == Role.USER) {
             return res.status(401).json({
-                success : false,
-                message : "only seller or admin can add products"
+                success: false,
+                message: "only seller or admin can add products"
             })
         }
 
-        const products = await Product.find({title,img});
+        const products = await Product.find({ title, img });
 
-        if(products){
+        if (products) {
             return res.status(401).json({
-                success : false,
-                message : "product is already listed with same title, and image"
+                success: false,
+                message: "product is already listed with same title, and image"
             })
         }
 
         const newProduct = new Product({
             title,
-            description, 
+            description,
             img,
             price,
             stock,
@@ -49,14 +49,14 @@ const listProduct = async (req, res) => {
         await newProduct.save();
 
         return res.status(201).json({
-            success : true,
-            product : products
+            success: true,
+            product: products
         })
-        
+
     } catch (error) {
         res.status(500).json({
-            success : false,
-            message : error.message
+            success: false,
+            message: error.message
         })
     }
 
@@ -71,8 +71,8 @@ const getProducts = async (req, res) => {
         // firstly we are finding on the basses of category
         // secondly by searching
         // and lastly by just getting all product
-        
-        let query;        
+
+        let query;
         if (category) {
             const _category = category.split(" ");
             query = Product.find({ category: { $in: _category } });
@@ -118,21 +118,107 @@ const getProducts = async (req, res) => {
     }
 }
 
-const getProductById = async(req, res) => {
-    const {id} = req.params;
+const getProductById = async (req, res) => {
+    const { id } = req.params;
 
     try {
         const product = await Product.findById(id);
         return res.status(201).json({
-            success : true,
-            data : product
+            success: true,
+            product: product
         })
     } catch (error) {
         res.status(500).json({
-            success : false,
-            error : error.message
+            success: false,
+            error: error.message
         })
     }
 }
 
-module.exports = { listProduct, getProducts, getProductById };
+const addProduct = async (req, res) => {
+    const { id, title, description, img, price, stock, brand } = req.body;
+
+    let category = req.body.category
+
+    try {
+        const seller = req.userData;
+        console.log(seller)
+        if (typeof (category) === 'string') {
+            console.log('yes')
+            category = category.split(",")
+        }
+        console.log(category)
+
+        let newProduct;
+
+        if (id !== undefined) {
+            newProduct = await Product.findByIdAndUpdate({ _id: id },
+                {
+                    $set: {
+                        title,
+                        description,
+                        img,
+                        price,
+                        stock,
+                        brand,
+                        category
+                    }
+                }
+            );
+
+            return res.status(201).json({
+                success: true,
+                message: "updated",
+                product: newProduct,
+            })
+        }
+        console.log(req.body)
+        newProduct = new Product({
+            title,
+            description,
+            img,
+            price,
+            stock,
+            brand,
+            category,
+            seller: seller._id
+        })
+
+        await newProduct.save();
+
+        return res.status(201).json({
+            success: true,
+            message: "created",
+            product: newProduct,
+        })
+    } catch (error) {
+        console.log(error.message)
+        return res.status(201).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message,
+        })
+    }
+
+}
+
+const deleteProduct = async (req, res) => {
+    const { id } = req.params;
+    console.log(id);
+    try {
+        await Product.findByIdAndDelete({ _id: id })
+
+        return res.status(201).json({
+            success: true,
+            message: "deleted"
+        })
+    } catch (error) {
+        console.log(error.message);
+        return res.status(201).json({
+            success: true,
+            message: "internal server error"
+        })
+    }
+}
+
+module.exports = { listProduct, getProducts, getProductById, addProduct, deleteProduct };
