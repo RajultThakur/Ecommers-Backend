@@ -4,7 +4,7 @@ const Product = require("../models/product")
 const User = require("../models/user")
 
 const addToCartOrWishList = async (req, res) => {
-    const { authorId, productId, category } = req.body;
+    let { authorId, productId, category } = req.body;
 
     try {
         const isValid = authorId || productId || category;
@@ -16,50 +16,63 @@ const addToCartOrWishList = async (req, res) => {
             })
         }
 
-        let product = await Cart.findOne({ author : authorId, product : productId });
+        let product = await Cart.findOne({ author: authorId, product: productId });
 
         if (product) {
-            console.log('first')
             let _id = product._id;
-            if (product.category === ProductStatus.ADDED_TO_CART) {
-                console.log("cart matched")
-                let quantity = product.quantity;
+            let quantity = product.quantity;
 
-                let categoryType = product.category;
+            if (category === ProductStatus.WISH_LISTED) {
 
-                if (category === ProductStatus.WISH_LISTED) {
-                    categoryType = ProductStatus.CART_AND_LISTED
-                } else {
-                    quantity++;
+                if (product.category === ProductStatus.ADDED_TO_CART) {
+                    // category = ProductStatus.CART_AND_LISTED;
+                    const updatedCart = await Cart.findByIdAndUpdate({ _id }, { $set: { quantity, category: ProductStatus.CART_AND_LISTED } });
+
+                    return res.status(201).json({
+                        success: true,
+                        data: category
+                    })
+                } else if (product.category === ProductStatus.CART_AND_LISTED) {
+                    const updatedCart = await Cart.findByIdAndUpdate({ _id }, { $set: { quantity, category: ProductStatus.ADDED_TO_CART } });
+
+                    return res.status(201).json({
+                        success: true,
+                        data: 'removed form wishlist not form cart'
+                    })
                 }
-
-                const updatedCart = await Cart.findByIdAndUpdate({ _id }, { $set: { quantity, category: categoryType } });
+                else if (product.category === ProductStatus.WISH_LISTED) {
+                    await Cart.findByIdAndRemove(_id);
+                    return res.status(201).json({
+                        success: true,
+                        message: "removed form wishlist"
+                    })
+                }
+            } else {
+                if (product.category === ProductStatus.WISH_LISTED) {
+                    category = ProductStatus.CART_AND_LISTED;
+                }
+                quantity++;
+                const updatedCart = await Cart.findByIdAndUpdate({ _id }, { $set: { quantity, category: category } });
 
                 return res.status(201).json({
                     success: true,
-                    data: updatedCart
+                    data: category
                 })
             }
-            
-            await Cart.findByIdAndRemove(_id);
-            return res.status(201).json({
-                success: true,
-                message: "product removed form wishlist"
-            })
         }
 
         const cartObj = new Cart({
             author: authorId,
             product: productId,
             category,
-            quantity : category === ProductStatus.WISH_LISTED ? 0 : 1
+            quantity: category === ProductStatus.WISH_LISTED ? 0 : 1
         })
 
         await cartObj.save();
 
         return res.json({
             success: true,
-            data: cartObj
+            data: category
         })
 
     } catch (error) {
@@ -70,25 +83,29 @@ const addToCartOrWishList = async (req, res) => {
     }
 }
 
-const getCartProduct = async(req, res) => {
-    const {id} = req.params;
+const getCartProduct = async (req, res) => {
+    const { id } = req.params;
 
     try {
-        const cartItems = await Cart.find({author : id}).populate([{
+        let cartItems = Cart.find({ author: id, })
+
+        cartItems = Cart.find({ $or: [{ category: "added to cart" }, { category: "in cart as well as wish listed" }] });
+
+        const data = await cartItems.populate([{
             path: "author",
             model: "User",
             select: ["name", "email"]
-        },{
+        }, {
             path: "product",
             model: "Product",
             select: ["-seller", "-stock", "-category"]
         }]);
 
         return res.status(201).json({
-            success : true,
-            data : cartItems
+            success: true,
+            data
         })
-        
+
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -97,28 +114,32 @@ const getCartProduct = async(req, res) => {
     }
 }
 
-const removeFromCart = async(req, res) => {
-    const {user, id} = req.params;
+const removeFromCart = async (req, res) => {
+    const { id } = req.params;
 
     try {
         const cartItems = await Cart.findById(id);
 
         let query;
         const quantity = cartItems.quantity
-        if(quantity > 1){
-            query = Cart.findByIdAndUpdate(id,{$set : {quantity : quantity - 1 }})
-        }else{
-            query = Cart.findByIdAndDelete(id);
+        if (quantity > 1) {
+            query = Cart.findByIdAndUpdate(id, { $set: { quantity: quantity - 1 } })
+        } else {
+            if (cartItems.category === ProductStatus.WISH_LISTED || cartItems.category === ProductStatus.CART_AND_LISTED) {
+                query = Cart.findByIdAndUpdate(id, { $set: { category: ProductStatus.WISH_LISTED, quantity: 0 } })
+            } else {
+                query = Cart.findByIdAndDelete(id);
+            }
         }
 
         await query;
 
         return res.status(201).json({
-            success : true,
-            message : "item removed from cart" 
+            success: true,
+            message: "item removed from cart"
         })
 
-        
+
     } catch (error) {
         return res.status(500).json({
             success: false,

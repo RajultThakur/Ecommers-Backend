@@ -84,7 +84,7 @@ const getProducts = async (req, res) => {
 
         //  price : we will pass price as a query in url and value should be either 1 or -1.
         //        1 for sort in low to high order
-        //       -1 for sort in hight to low
+        //       -1 for sort in high to low
 
         //  rating : we will pass rating as a query element in url and it will only contain -1. To sort in higher to lower order 
 
@@ -108,7 +108,7 @@ const getProducts = async (req, res) => {
 
         return res.status(201).json({
             success,
-            products
+            data: products
         });
     } catch (error) {
         return res.status(500).json({
