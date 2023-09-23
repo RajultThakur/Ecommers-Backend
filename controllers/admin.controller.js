@@ -88,11 +88,12 @@ const makeAdminOrRemoveAdmin = async (req, res) => {
             })
         }
 
-        await User.findByIdAndUpdate(user._id, { $set: { role: adminQuery } });
+        const updatedUser = await User.findByIdAndUpdate(user._id, { $set: { role: adminQuery } });
 
         return res.json({
             success: true,
-            message: adminQuery === 'admin' ? "Added to admin" : "removed form admin"
+            message: adminQuery === 'admin' ? "Added to admin" : "removed form admin",
+            data: updatedUser
         })
 
     } catch (error) {
