@@ -42,14 +42,14 @@ const signup = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success,
-            error:error.message
+            error: error.message
         });
     }
 };
 
 //user login function using JWT authentication.
-const signin = async (req, res) => {
-    const {email, password} = req.body;
+const signIn = async (req, res) => {
+    const { email, password } = req.body;
     let success = false;
     try {
 
@@ -99,15 +99,15 @@ const signin = async (req, res) => {
 // this is also a protected route you can not call it without logged in.
 const getUserByID = async (req, res) => {
     let success = true;
-    const {id} = req.params;
-    
+    const { id } = req.params;
+
     try {
-        
+
         const user = await User.findById(id).select("-password")
 
         return res.status(201).json({
             success,
-            data : user
+            data: user
         })
 
     } catch (error) {
@@ -117,5 +117,12 @@ const getUserByID = async (req, res) => {
     }
 };
 
-module.exports = {signup, signin, getUserByID};
+const getUserByToken = async (req, res) => {
+    return res.status(201).json({
+        success: true,
+        data: req.userData
+    })
+}
+
+module.exports = { signup, signIn, getUserByID, getUserByToken };
 
