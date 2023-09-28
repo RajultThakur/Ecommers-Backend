@@ -1,36 +1,74 @@
 const mongoose = require('mongoose');
 
 const OrderStatus = {
-    SHIPPED : 'Shipped',
-    CANCEL : 'Cancel',
-    RETURN : 'Return',
-    SUCCESS : 'Delivered'
+    SHIPPED: 'Shipped',
+    CANCEL: 'Cancel',
+    RETURN: 'Return',
+    SUCCESS: 'Delivered'
 }
 
-const OrderSchema = new mongoose.Schema(
-    {
-        author : {
-            type : mongoose.Types.ObjectId,
-            ref : 'User'
+const OrderSchema = mongoose.Schema({
+    shippingInfo: {
+        type: String,
+        required: true,
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: "User",
+    },
+    orderItems: [
+        {
+            product: {
+                type: mongoose.Schema.Types.ObjectId,
+                required: true,
+                ref: "Product",
+            },
+            name: {
+                type: String,
+                required: true,
+            },
+            quantity: {
+                type: String,
+                required: true,
+            },
+            image: [{
+                type: String,
+            }],
+            price: {
+                type: String,
+                required: true,
+            },
         },
-        product :{
-            type : mongoose.Types.ObjectId,
-            ref : 'Product'
+    ],
+    paymentInfo: {
+        id: {
+            type: String,
+            required: true,
         },
-        status : {
-            type : String,
-            enm : OrderStatus,
-            default : OrderStatus.SHIPPED
+        status: {
+            type: String,
+            required: true,
         },
-        Date:{
-            type:Date,
-            default:Date.now
+        taxPaid: {
+            type: Number,
+            required: true,
+        },
+        amountPaid: {
+            type: Number,
+            required: true,
         },
     },
-    {
-        timestamps: true
+    orderStatus: {
+        type: String,
+        default: "Processing",
     },
-)
-const Order = mongoose.model('Order',OrderSchema);
-module.exports = {Order, OrderStatus};
+    createAt: {
+        type: Date,
+        default: Date.now,
+    },
+});
+
+const Order = mongoose.model('Order', OrderSchema);
+module.exports = { Order, OrderStatus };
 

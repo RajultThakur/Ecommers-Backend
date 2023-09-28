@@ -68,17 +68,19 @@ const addToCartOrWishList = async (req, res) => {
             quantity: category === ProductStatus.WISH_LISTED ? 0 : 1
         })
 
-        await cartObj.save();
+        const addedProduct = await cartObj.save();
 
         return res.json({
             success: true,
-            data: category
+            message: category,
+            data: addedProduct
+
         })
 
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         })
     }
 }
@@ -89,13 +91,9 @@ const getCartProduct = async (req, res) => {
     try {
         let cartItems = Cart.find({ author: id, })
 
-        cartItems = Cart.find({ $or: [{ category: "added to cart" }, { category: "in cart as well as wish listed" }] });
-
+        // cartItems = Cart.find({ $or: [{ category: "added to cart" }, { category: "in cart as well as wish listed" }] });
+        // const data = await cartItems
         const data = await cartItems.populate([{
-            path: "author",
-            model: "User",
-            select: ["name", "email"]
-        }, {
             path: "product",
             model: "Product",
             select: ["-seller", "-stock", "-category"]

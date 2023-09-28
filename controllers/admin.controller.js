@@ -9,7 +9,7 @@ const getAllOrders = async (req, res) => {
         const user = await User.findById(id);
         let query;
         if (user.role !== Role.ADMIN) {
-            query = Order.find({ author: id });
+            query = Order.find({ user: id });
         } else {
             query = Order.find();
         }
@@ -17,12 +17,7 @@ const getAllOrders = async (req, res) => {
         const orders = await query.populate(
             [
                 {
-                    path: "author",
-                    model: "User",
-                    select: ["email", "name"]
-                },
-                {
-                    path: "product",
+                    path: "orderItems.product",
                     model: "Product",
                     select: ["-author", "-category", "-seller"]
                 }

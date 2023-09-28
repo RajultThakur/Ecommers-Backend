@@ -4,7 +4,7 @@ const { addToCartOrWishList, getCartProduct, removeFromCart } = require("../cont
 const router = express.Router();
 
 router.post("/cartorlist", addToCartOrWishList);
-router.get("/cartitems/:id", getCartProduct);
+router.get("/cart-items/:id", getCartProduct);
 router.get("/remove/:id", removeFromCart);
 
 module.exports = router;
