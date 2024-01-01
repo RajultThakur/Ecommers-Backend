@@ -16,7 +16,14 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { Order } = require("./models/order")
 
 
-app.use(cors());
+// app.use(cors());
+app.use(cors(
+    {
+        origin: ["https://deploy-mern-frontend.vercel.app"],
+        methods: ["POST", "GET"],
+        credentials: true
+    }
+));
 
 async function getCartItems (line_items) {
     return new Promise((resolve, reject) => {
