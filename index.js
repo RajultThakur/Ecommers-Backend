@@ -6,7 +6,7 @@ const cors = require('cors');
 const userRouter = require('./routes/user.route');
 const productRouter = require('./routes/product.route');
 const orderRouter = require('./routes/order.route')
-const productJson = require('./data/product.data.json');
+// const productJson = require('./data/product.data.json');
 const Product = require('./models/product');
 const adminRouter = require('./routes/admin.route')
 const cartRouter = require('./routes/cart.route');
@@ -16,14 +16,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { Order } = require("./models/order")
 
 
-// app.use(cors());
-app.use(cors(
-    {
-        origin: ["https://deploy-mern-frontend.vercel.app"],
-        methods: ["POST", "GET"],
-        credentials: true
-    }
-));
+app.use(cors());
 
 async function getCartItems (line_items) {
     return new Promise((resolve, reject) => {
@@ -54,7 +47,6 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (reques
     const sig = request.headers['stripe-signature'];
 
     let event;
-    console.log('going goin')
     try {
         event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
         // console.log("event is : ", event)
