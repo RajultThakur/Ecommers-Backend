@@ -58,7 +58,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (reques
     // Handle the checkout.session.completed event
     if (event.type === "checkout.session.completed") {
         const session = event.data.object;
-        // console.log("session : ", session)
+        console.log("session : ", session)
         const line_items = await stripe.checkout.sessions.listLineItems(
             event.data.object.id
         );
@@ -83,7 +83,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (reques
         });
 
         const order = await orderData.save();
-        console.log("order created")
+        console.log("order created", order)
         return response.status(201).json({ success: true });
     }
 
